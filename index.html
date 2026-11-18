@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Coach Calisthenics</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{--bg:#0f1115;--card:#181b22;--card2:#20242d;--fg:#e9ecf1;--mut:#8b93a3;--acc:#4ade80;--warn:#fbbf24;--bad:#f87171;--blue:#60a5fa;--line:#2a2f3a}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
+body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+button{font:inherit;color:inherit;border:0;border-radius:12px;background:var(--card2);padding:14px 16px;cursor:pointer;touch-action:manipulation}
+button:active{transform:scale(.97)}
+button.pri{background:var(--acc);color:#0b2414;font-weight:700}
+button.warn{background:#3a2f12;color:var(--warn)}
+button.sel{outline:2px solid var(--acc)}
+.hidden{display:none!important}
+.wrap{max-width:720px;margin:0 auto;padding:16px}
+h1{font-size:24px;margin:8px 0 2px}
+h2{font-size:18px;margin:20px 0 8px}
+h3{font-size:15px;margin:14px 0 6px;color:var(--blue)}
+.mut{color:var(--mut)}
+.small{font-size:13px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin:10px 0}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.grow{flex:1}
+.tabs{display:flex;gap:6px;margin:12px 0}
+.tabs button{flex:1;padding:10px 6px;font-size:14px}
+.weeks{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+.weeks button{padding:12px 0;font-weight:700}
+.sesscard{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.sesscard .t{font-weight:700;font-size:17px}
+.toggle{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.toggle:last-child{border-bottom:0}
+.seg{display:flex;gap:4px}
+.seg button{padding:8px 12px;font-size:14px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+td{padding:6px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+td.n{white-space:nowrap;color:var(--mut);text-align:right}
+ul{padding-left:20px;margin:6px 0}
+li{margin:4px 0}
+
+/* Session */
+#session{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--bg);padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.sbar{display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:14px;color:var(--mut)}
+.sbar .blk{color:var(--fg);font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sbar button{padding:8px 12px;font-size:14px}
+.prog{height:4px;background:var(--line)}
+.prog>div{height:100%;background:var(--acc);width:0;transition:width .3s}
+.stage{position:relative;flex:1;min-height:0;display:flex;flex-direction:column}
+.cam{position:relative;flex:1;min-height:0;background:#000}
+.cam video,.cam canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.cam.mirror video,.cam.mirror canvas{transform:scaleX(-1)}
+.camstat{position:absolute;left:8px;top:8px;background:#000a;padding:4px 8px;border-radius:8px;font-size:12px}
+.panel{padding:10px 16px 6px;text-align:center}
+.stage.nocam .panel{flex:1;display:flex;flex-direction:column;justify-content:center}
+.phase{font-size:15px;letter-spacing:.12em;font-weight:800}
+.phase.setup{color:var(--blue)}.phase.work{color:var(--acc)}.phase.rest{color:var(--warn)}.phase.done{color:var(--acc)}
+.exname{font-size:clamp(22px,6vw,34px);font-weight:800;margin:4px 0}
+.setinfo{font-size:clamp(15px,4vw,20px);color:var(--mut)}
+.big{font-size:clamp(72px,26vw,180px);font-weight:900;line-height:1;font-variant-numeric:tabular-nums;margin:6px 0}
+.stage:not(.nocam) .big{font-size:clamp(56px,16vw,120px)}
+.cue{font-size:clamp(17px,4.6vw,24px);min-height:1.4em;color:var(--warn);font-weight:600}
+.metric{font-size:15px;color:var(--blue);min-height:1.2em;font-variant-numeric:tabular-nums}
+.desc{font-size:15px;color:var(--fg);text-align:left;max-width:560px;margin:8px auto 0}
+.desc li{margin:3px 0}
+.next{font-size:14px;color:var(--mut);margin-top:6px}
+.ctrl{display:flex;gap:8px;padding:10px 12px 14px}
+.ctrl button{flex:1;padding:18px 8px;font-size:18px;font-weight:700}
+.summary{overflow:auto;padding:12px 16px;text-align:left}
+.anim{display:flex;justify-content:center;margin:6px 0}
+.anim svg{height:min(30vh,240px);width:auto;background:#141821;border-radius:14px}
+.anim.small svg{height:min(19vh,150px)}
+button.exl{background:none;padding:0;text-align:left;text-decoration:underline dotted var(--mut);border-radius:0}
+#modal{position:fixed;inset:0;background:#000c;display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
+#modal .box{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;max-width:520px;width:100%}
+#modal .anim svg{height:min(40vh,300px)}
+</style>
+</head>
+<body>
+
+<!-- HOME / PROGRAMMA / REGISTRO -->
+<div id="main" class="wrap">
+  <h1>Coach Calisthenics</h1>
+  <div class="mut small">Mobilità spalle · verticale · muscle-up — 2 sessioni a settimana</div>
+  <div class="tabs">
+    <button data-tab="home" class="sel">Allenamento</button>
+    <button data-tab="program">Programma</button>
+    <button data-tab="log">Registro</button>
+  </div>
+
+  <section id="tab-home">
+    <div class="card">
+      <div class="row"><div class="grow"><b>Settimana</b> <span id="phaseLbl" class="mut"></span></div></div>
+      <div class="weeks" id="weeks" style="margin-top:8px"></div>
+    </div>
+    <div id="sessCards"></div>
+    <div class="card">
+      <div class="toggle"><span>Fotocamera (analisi movimento)</span><div class="seg" id="optCam"><button data-v="1">On</button><button data-v="0">Off</button></div></div>
+      <div class="toggle"><span>Camera</span><div class="seg" id="optFacing"><button data-v="user">Frontale</button><button data-v="environment">Posteriore</button></div></div>
+      <div class="toggle"><span>Ritmo automatico (la voce conta le ripetizioni)</span><div class="seg" id="optAuto"><button data-v="1">On</button><button data-v="0">Off</button></div></div>
+      <div class="toggle"><span>Guida vocale</span><div class="seg" id="optVoice"><button data-v="1">On</button><button data-v="0">Off</button></div></div>
+    </div>
+    <div class="mut small">A e B in giorni non consecutivi. Fai il Test nelle settimane 1, 4 e 8 (in una sessione separata o al posto di B). Le settimane 4 e 8 sono di scarico.</div>
+  </section>
+
+  <section id="tab-program" class="hidden"></section>
+
+  <section id="tab-log" class="hidden">
+    <div class="row">
+      <button id="btnCopyLog" class="pri">Copia registro per Claude</button>
+      <button id="btnClearLog" class="warn">Cancella</button>
+    </div>
+    <div id="copyMsg" class="mut small" style="margin-top:6px"></div>
+    <textarea id="copyArea" class="hidden" style="width:100%;height:160px;margin-top:8px;background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:8px"></textarea>
+    <div id="logList"></div>
+  </section>
+</div>
+
+<div id="modal" class="hidden"><div class="box">
+  <div class="row"><b id="mTitle" class="grow" style="font-size:18px"></b><button id="mClose">Chiudi</button></div>
+  <div class="anim" id="mAnim"></div>
+  <ul class="desc" id="mDesc"></ul>
+</div></div>
+
+<!-- SESSIONE -->
+<div id="session" class="hidden">
+  <div class="sbar">
+    <span class="blk" id="sBlock"></span>
+    <span id="sClock">0:00</span>
+    <button id="btnPause">Pausa</button>
+    <button id="btnQuit">Esci</button>
+  </div>
+  <div class="prog"><div id="sProg"></div></div>
+  <div class="stage" id="stage">
+    <div class="cam" id="cam">
+      <video id="video" playsinline muted></video>
+      <canvas id="overlay"></canvas>
+      <div class="camstat" id="camStat">Avvio fotocamera…</div>
+    </div>
+    <div class="panel" id="panel">
+      <div class="phase" id="sPhase"></div>
+      <div class="exname" id="sEx"></div>
+      <div class="setinfo" id="sSet"></div>
+      <div class="anim" id="sAnim"></div>
+      <div class="big" id="sBig"></div>
+      <div class="cue" id="sCue"></div>
+      <div class="metric" id="sMetric"></div>
+      <ul class="desc" id="sDesc"></ul>
+      <div class="next" id="sNext"></div>
+    </div>
+    <div class="summary hidden" id="sSummary"></div>
+  </div>
+  <div class="ctrl" id="ctrl"></div>
+</div>
+
+<script type="module">
+/* ================= CONFIG ================= */
+const MP_VER = "1.2.3";
+const MP_URL = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VER}/vision_bundle.mjs`;
+const WASM_URL = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VER}/wasm`;
+const MODEL_URL = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task";
+const SETUP_SEC = 15;
+
+const $ = s => document.querySelector(s);
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("coach." + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem("coach." + k, JSON.stringify(v)); } catch (e) {} }
+};
+const fmt = s => { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
+
+/* ================= ESERCIZI =================
+   kind: reps | hold (countdown, o "max" = cronometro) | time (countdown, guidato) | rom (test 20 s)
+   track: tracker di posa usato quando la fotocamera è attiva */
+const EX = {
+  circ:     { name: "Circonduzioni braccia", kind: "time", half: "Inverti il senso",
+              cues: ["Cerchi ampi a braccia tese", "Metà tempo in avanti, metà indietro"] },
+  disloc:   { name: "Dislocazioni con elastico", kind: "reps",
+              cues: ["Elastico leggero, presa larga, braccia tese", "Passa sopra la testa fino dietro la schiena e torna", "Se pieghi i gomiti, allarga la presa"] },
+  scap:     { name: "Scapular pull-up", kind: "reps",
+              cues: ["Appeso a braccia tese", "Abbassa e avvicina le scapole senza piegare i gomiti", "Tieni 1 secondo in alto"] },
+  wrist:    { name: "Preparazione polsi", kind: "time", half: "Gira le mani, dita verso le ginocchia",
+              cues: ["A quattro zampe, dondola avanti e indietro sui palmi", "Seconda metà: dita rivolte verso le ginocchia"] },
+  rom:      { name: "Test flessione spalle", kind: "rom", track: "rom",
+              setup: "Telefono di lato a 2-3 metri: ti deve inquadrare di profilo, in piedi, dalla testa alle ginocchia.",
+              cues: ["Alza le braccia tese sopra la testa più che puoi", "Non inarcare la schiena: costole giù", "A metà tempo girati dall'altro lato"] },
+  puppy:    { name: "Puppy pose", kind: "hold",
+              cues: ["In ginocchio, mani avanti sul tappetino, anche sopra le ginocchia", "Lascia scendere il petto verso il pavimento", "Respira lento, non forzare"] },
+  hang:     { name: "Appeso passivo", kind: "hold",
+              cues: ["Presa alla larghezza delle spalle", "Spalle rilassate verso le orecchie", "Respira e lascia aprire le spalle"] },
+  wallslide:{ name: "Wall slide", kind: "reps",
+              cues: ["Schiena e braccia al muro a W, scivola su fino a Y", "Costole giù, la lombare resta vicina al muro"] },
+  latpnf:   { name: "Dorsali contrai-rilassa (gomiti sulla sedia)", kind: "hold",
+              cues: ["In ginocchio, gomiti su sedia o divano, mani unite dietro la testa", "5 secondi: spingi i gomiti nella sedia", "Poi rilassa e scendi col petto: ripeti per tutto il tempo"] },
+  openbook: { name: "Open book (rotazione toracica)", kind: "reps", perSide: true,
+              cues: ["Sdraiato su un fianco, ginocchia a 90 gradi", "Apri il braccio sopra fino a terra dall'altra parte", "Segui la mano con lo sguardo, ginocchia ferme"] },
+  hscw:     { name: "Verticale pancia al muro", kind: "hold", track: "hs",
+              setup: "Telefono di lato al muro a 2-3 metri: ti deve inquadrare di profilo, mani e piedi compresi.",
+              cues: ["Spingi il pavimento, orecchie tra le braccia", "Costole dentro, glutei stretti, punte tese", "Mani a 10-20 cm dal muro"] },
+  taps:     { name: "Tocchi spalla in verticale al muro", kind: "reps", perSide: true,
+              cues: ["Pancia al muro, sposta il peso su una mano", "Tocca la spalla opposta, il corpo non ruota", "Conta le ripetizioni per lato"] },
+  toepull:  { name: "Toe pull dal muro (tentativi)", kind: "reps",
+              cues: ["Pancia al muro, punte che appena toccano", "Stacca i piedi e trova l'equilibrio", "Se cadi verso il muro, premi con i polpastrelli"] },
+  kickup:   { name: "Kick-up schiena al muro", kind: "reps",
+              cues: ["Mani a 20-30 cm dal muro, braccia tese bloccate", "Slancio controllato: arriva al muro senza sbattere", "Conta i tentativi"] },
+  heelpull: { name: "Heel pull (staccare i talloni dal muro)", kind: "reps",
+              cues: ["Schiena al muro, in verticale", "Stacca i talloni spingendo con i palmi e cerca l'equilibrio", "Anche sopra le spalle, glutei stretti"] },
+  falsegrip:{ name: "Appeso in false grip", kind: "hold",
+              cues: ["Polso sopra la sbarra, base del palmo appoggiata", "Braccia tese, spalle attive", "Se perdi la presa, riprendila: conta il tempo totale"] },
+  expull:   { name: "Trazioni esplosive al petto", kind: "reps", track: "pull-chest",
+              setup: "Manubri sulla base della stazione. Telefono a terra a 2-3 metri davanti alla sbarra, in verticale: inquadra dalla sbarra ai piedi.",
+              cues: ["Parti a braccia tese, tira più forte che puoi", "Petto alla sbarra, gomiti verso i fianchi", "Se non arrivi al petto, chiudi la serie"] },
+  muneg:    { name: "Muscle-up negativi", kind: "reps",
+              setup: "Sbarra abbassata, manubri sulla base della stazione. Niente slancio: la stazione non deve muoversi.",
+              cues: ["Sali in sostegno sopra la sbarra con un salto", "Transizione in discesa in 3 secondi, gomiti stretti", "Poi trazione in discesa in 3 secondi"] },
+  muband:   { name: "Muscle-up con elastico", kind: "reps",
+              setup: "Elastico attaccato alla sbarra, sotto i piedi o le ginocchia. Manubri sulla base della stazione, niente slancio.",
+              cues: ["Tira verso le anche, non verso il mento", "Passa veloce col petto sopra la sbarra", "Chiudi con un dip a braccia tese"] },
+  hollow:   { name: "Hollow body", kind: "hold",
+              cues: ["Lombare schiacciata a terra", "Braccia sopra la testa, gambe tese e basse", "Se la lombare si stacca, piega le ginocchia"] },
+  hipflex:  { name: "Allungamento flessori dell'anca (affondo)", kind: "time", half: "Cambia gamba",
+              cues: ["Mezzo affondo: ginocchio dietro sul tappetino, piede davanti a 90 gradi", "Stringi il gluteo dietro e porta il bacino avanti, busto dritto", "Non inarcare la schiena: l'allungamento si sente davanti all'anca"] },
+  wipers:   { name: "Tergicristalli anche (90/90)", kind: "reps",
+              cues: ["Seduto, mani dietro a terra, piedi larghi più delle spalle", "Lascia cadere entrambe le ginocchia da un lato, poi dall'altro", "Busto dritto, movimento lento e controllato"] },
+  deepsquat:{ name: "Squat profondo in tenuta", kind: "hold",
+              cues: ["Piedi larghezza spalle, punte leggermente fuori", "Scendi più che puoi, talloni a terra", "Gomiti che spingono le ginocchia in fuori, petto alto"] },
+  pikestr:  { name: "Pike stretch seduto", kind: "hold",
+              cues: ["Seduto, gambe tese unite, punte verso di te", "Piegati dalle anche, non dalla schiena", "Ad ogni espirazione scendi un po' di più"] },
+  kneeraise:{ name: "Knee raise alla sbarra", kind: "reps",
+              setup: "Appeso alla sbarra alta, braccia tese.",
+              cues: ["Porta le ginocchia al petto arrotondando il bacino", "Scendi lento, senza oscillare", "Spalle attive, non appeso passivo"] },
+  legraise: { name: "Leg raise alla sbarra", kind: "reps",
+              setup: "Appeso alla sbarra alta, braccia tese.",
+              cues: ["Gambe tese fino almeno all'orizzontale", "Bacino che si arrotonda in alto", "Discesa lenta, niente slancio"] },
+  lsit:     { name: "Tuck L-sit alle parallele", kind: "hold",
+              setup: "Sulle parallele, braccia tese.",
+              cues: ["Spingi giù, spalle lontane dalle orecchie", "Ginocchia al petto, piedi sollevati", "Se tremano le spalle, accorcia il tempo e mantieni la forma"] },
+  deadbug:  { name: "Dead bug", kind: "reps", perSide: true,
+              cues: ["Sdraiato, braccia verso il soffitto, ginocchia a 90 gradi sopra le anche", "Allunga braccio e gamba opposti senza staccare la lombare", "Espira mentre allunghi, torna lento"] },
+  extrot:   { name: "Extrarotazioni con elastico", kind: "reps", perSide: true,
+              cues: ["Gomito al fianco a 90 gradi", "Ruota l'avambraccio verso l'esterno, lento", "Il gomito non si muove"] },
+  sbdip:    { name: "Dip alla sbarra", kind: "reps", track: "dip-bar",
+              setup: "Telefono di lato alla sbarra: ti deve inquadrare di profilo.",
+              cues: ["Busto in avanti, gambe leggermente avanti", "Scendi finché la sbarra è sotto il petto", "Spingi fino a braccia tese"] },
+  dipdeep:  { name: "Dip alle parallele, discesa in 3 secondi", kind: "reps", track: "dip",
+              setup: "Telefono di lato alle parallele: ti deve inquadrare di profilo.",
+              cues: ["Scendi in 3 secondi, gomiti sotto i 90 gradi", "Spalle basse, lontane dalle orecchie", "Braccia completamente tese in alto"] },
+  dipw:     { name: "Dip zavorrati (manubrio tra i piedi)", kind: "reps", track: "dip",
+              setup: "Telefono di lato alle parallele. Manubrio stretto tra i piedi.",
+              cues: ["Stessa profondità dei dip a corpo libero", "Gomiti sotto i 90 gradi", "Se perdi profondità, togli peso"] },
+  pullslow: { name: "Trazioni lente (discesa 3 s)", kind: "reps", track: "pull-chin",
+              setup: "Telefono a terra davanti alla sbarra, inquadra dalla sbarra ai piedi.",
+              cues: ["Mento sopra la sbarra", "Discesa in 3 secondi fino a braccia tese", "Niente slancio"] },
+  pullw:    { name: "Trazioni zavorrate (manubrio tra i piedi)", kind: "reps", track: "pull-chin",
+              setup: "Telefono a terra davanti alla sbarra. Manubrio stretto tra i piedi.",
+              cues: ["Mento sopra la sbarra", "Braccia tese in basso a ogni ripetizione", "Se le gambe oscillano, riduci il peso"] },
+  pike:     { name: "Pike push-up", kind: "reps",
+              cues: ["Anche alte, testa verso il pavimento davanti alle mani", "Gomiti a 45 gradi, non aperti", "Spingi fino a braccia tese"] },
+  pikeel:   { name: "Pike push-up piedi rialzati", kind: "reps",
+              cues: ["Piedi su sedia o divano, anche sopra le spalle", "Testa davanti alle mani, a formare un triangolo", "Gomiti a 45 gradi"] },
+  facepull: { name: "Face pull con elastico", kind: "reps",
+              cues: ["Elastico all'altezza del viso", "Tira verso la fronte aprendo i gomiti", "Chiudi ruotando le mani verso l'alto"] },
+  pecs:     { name: "Allungamento pettorali al muro", kind: "time", half: "Cambia lato",
+              cues: ["Avambraccio al muro, gomito all'altezza della spalla", "Ruota il busto lontano dal muro", "Metà tempo per lato"] },
+  child:    { name: "Child's pose a braccia avanti", kind: "time",
+              cues: ["Glutei sui talloni, braccia lunghe avanti", "Respira lento e lascia scendere il petto"] },
+  maxpull:  { name: "TEST: trazioni massime", kind: "reps", track: "pull-chin", max: true,
+              setup: "Telefono a terra davanti alla sbarra, inquadra dalla sbarra ai piedi.",
+              cues: ["Solo ripetizioni pulite: mento sopra, braccia tese sotto", "Tocca Fatto a fine serie"] },
+  maxdip:   { name: "TEST: dip massimi", kind: "reps", track: "dip", max: true,
+              setup: "Telefono di lato alle parallele.",
+              cues: ["Gomiti sotto i 90 gradi, braccia tese in alto", "Tocca Fatto a fine serie"] },
+  maxhs:    { name: "TEST: verticale al muro, tenuta massima", kind: "hold", track: "hs", max: true,
+              setup: "Telefono di lato al muro, inquadra di profilo.",
+              cues: ["Pancia al muro, corpo in linea", "Il tempo si ferma quando scendi, oppure tocca Fatto"] },
+  maxfg:    { name: "TEST: false grip, tenuta massima", kind: "hold", max: true,
+              cues: ["Braccia tese, polsi sopra la sbarra", "Tocca Fatto quando molli"] },
+};
+
+/* Ritmo automatico: secondi per ripetizione e chiamate vocali dentro la ripetizione [secondo, testo].
+   Il numero viene detto a fine ripetizione. Usato quando non c'è un tracker di posa attivo. */
+const CAD = {
+  disloc: [3], scap: [3], wallslide: [4], openbook: [4], taps: [2.5], extrot: [3], facepull: [3],
+  toepull: [8, [[0, "Prova"]]], kickup: [10, [[0, "Slancio"]]], heelpull: [8, [[0, "Stacca"]]],
+  expull: [5, [[0, "Tira!"]]], pullslow: [5.5, [[0, "Su"], [1.5, "Giù lento"]]], pullw: [4.5],
+  muneg: [11, [[0, "Sali in sostegno"], [3, "Transizione lenta"], [6.5, "Trazione lenta"]]],
+  muband: [7, [[0, "Tira alle anche"], [2, "Passa e spingi"]]],
+  kneeraise: [3.5, [[0, "Su"], [1.3, "Giù lento"]]], legraise: [4, [[0, "Su"], [1.5, "Giù lento"]]],
+  deadbug: [3.5, [[0, "Allunga"], [1.8, "Torna"]]], wipers: [4],
+  sbdip: [3.5], dipdeep: [5, [[0, "Giù"], [3, "Su"]]], dipw: [4], pike: [3.5], pikeel: [4],
+};
+Object.entries(CAD).forEach(([k, [c, calls]]) => { EX[k].cad = c; if (calls) EX[k].calls = calls; });
+const NUM = ["zero", "uno", "due", "tre", "quattro", "cinque", "sei", "sette", "otto", "nove", "dieci", "undici", "dodici", "tredici", "quattordici", "quindici", "sedici", "diciassette", "diciotto", "diciannove", "venti"];
+const pick = a => a[Math.floor(Math.random() * a.length)];
+
+/* ================= ANIMAZIONI ESERCIZI (offline, SVG) =================
+   Vista laterale: figura rivolta a destra. Posa = posizione anca H, angolo busto t (0 su, 90 avanti, 180 giù),
+   arti come target [x,y] (cinematica inversa a 2 segmenti) oppure angolo dritto (wa/la) o coppia di angoli (aa/lla).
+   Keyframe: d = durata transizione verso il frame, h = tenuta. Il loop riparte dal frame 0. */
+const Anim = (() => {
+  const L = { torso: 30, neck: 4, head: 6, ua: 17, fa: 16, th: 24, sh: 23 };
+  const R = Math.PI / 180;
+  const dir = a => [Math.sin(a * R), -Math.cos(a * R)];
+  const mv = (p, a, k) => { const d = dir(a); return [p[0] + d[0] * k, p[1] + d[1] * k]; };
+  const angOf = (p, q) => Math.atan2(q[0] - p[0], -(q[1] - p[1])) / R;
+  function ik(Ro, T, a, b, bend) {
+    const dx = T[0] - Ro[0], dy = T[1] - Ro[1], d = Math.hypot(dx, dy);
+    const base = Math.atan2(dy, dx);
+    const dd = Math.max(Math.abs(a - b) + 0.01, Math.min(a + b - 0.01, d));
+    const off = Math.acos(Math.max(-1, Math.min(1, (a * a + dd * dd - b * b) / (2 * a * dd))));
+    const ang = base + bend * off;
+    const J = [Ro[0] + a * Math.cos(ang), Ro[1] + a * Math.sin(ang)];
+    const ang2 = Math.atan2(T[1] - J[1], T[0] - J[0]);
+    return [J, [J[0] + b * Math.cos(ang2), J[1] + b * Math.sin(ang2)]];
+  }
+  function limb(root, p, kP, kA, kAA, kB, l1, l2, defBend) {
+    if (p[kP]) return ik(root, p[kP], l1, l2, p[kB] ?? defBend);
+    if (p[kAA] != null) { const J = mv(root, p[kAA][0], l1); return [J, mv(J, p[kAA][1], l2)]; }
+    const a = p[kA] ?? 180; const J = mv(root, a, l1); return [J, mv(J, a, l2)];
+  }
+  function solveSide(p) {
+    const H = p.H, t = p.t ?? 0;
+    const top = mv(H, t, L.torso), S = mv(H, t, L.torso + (p.sc || 0));
+    const head = mv(top, t + (p.hd || 0), L.neck + L.head);
+    const [E, W] = limb(S, p, "W", "wa", "aa", "eb", L.ua, L.fa, 1);
+    const p2 = { W: p.W2 ?? (p.wa2 == null && p.aa2 == null ? p.W : undefined), wa: p.wa2 ?? p.wa, aa: p.aa2 ?? p.aa, eb: p.eb2 ?? p.eb };
+    const [E2, W2] = limb(S, p2, "W", "wa", "aa", "eb", L.ua, L.fa, 1);
+    const [K, A] = limb(H, p, "A", "la", "lla", "kb", L.th, L.sh, 1);
+    const q2 = { A: p.A2 ?? (p.la2 == null && p.lla2 == null ? p.A : undefined), la: p.la2 ?? p.la, lla: p.lla2 ?? p.lla, kb: p.kb2 ?? p.kb };
+    const [K2, A2] = limb(H, q2, "A", "la", "lla", "kb", L.th, L.sh, 1);
+    const foot = (k, a) => { const s = angOf(k, a); return mv(a, s - 90 * (1 - (p.pt || 0)), 6); };
+    return { H, top, S, head, E, W, E2, W2, K, A, K2, A2, F: foot(K, A), F2: foot(K2, A2) };
+  }
+  // interpolazione: numeri e array numerici, altrimenti valore del frame di arrivo
+  function lerp(a, b, k) {
+    const o = {};
+    for (const key of new Set([...Object.keys(a), ...Object.keys(b)])) {
+      const x = a[key], y = b[key];
+      if (typeof x === "number" && typeof y === "number") o[key] = x + (y - x) * k;
+      else if (Array.isArray(x) && Array.isArray(y)) o[key] = x.map((v, i) => v + (y[i] - v) * k);
+      else o[key] = y !== undefined ? y : x;
+    }
+    return o;
+  }
+  const ease = k => k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+  const NEAR = "#e9ecf1", FAR = "#6b7385", PROP = "#5b6475", BAND = "#fb923c", ACC = "#4ade80";
+  const ln = (a, b, c, w) => `<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>`;
+  const pl = (pts, c, w) => `<polyline points="${pts.map(p => p[0].toFixed(1) + "," + p[1].toFixed(1)).join(" ")}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+  function drawProps(props, J) {
+    const pt = v => typeof v === "string" ? J[v] : v;
+    return (props || []).map(pr => {
+      switch (pr.t) {
+        case "floor": return ln([5, 189.5], [195, 189.5], PROP, 2);
+        case "bar": return ln([pr.at[0] - 20, pr.at[1]], [pr.at[0] + 20, pr.at[1]], "#9ca3af", 3.2) + `<text x="${pr.at[0] + 22}" y="${pr.at[1] + 2}" fill="${PROP}" font-size="7">sbarra</text>`;
+        case "par": return ln([pr.x1, pr.y], [pr.x2, pr.y], PROP, 3) + ln([pr.x1 + 6, pr.y], [pr.x1 + 6, 189], PROP, 1.5) + ln([pr.x2 - 6, pr.y], [pr.x2 - 6, 189], PROP, 1.5);
+        case "wall": return `<rect x="${pr.x}" y="20" width="8" height="170" fill="#232833"/>`;
+        case "chair": return `<rect x="${pr.x}" y="${pr.y}" width="${pr.w}" height="4" fill="${PROP}"/>` + ln([pr.x + 2, pr.y + 4], [pr.x + 2, 189], PROP, 2) + ln([pr.x + pr.w - 2, pr.y + 4], [pr.x + pr.w - 2, 189], PROP, 2);
+        case "band": return ln(pt(pr.from), pt(pr.to), BAND, 1.6);
+        case "bandW": { const w = J.W, a = angOf(J.E, J.W) + 90; return ln(mv(w, a, 8), mv(w, a, -8), BAND, 2); }
+        case "db": { const p = pt(pr.at); return ln([p[0] - 5, p[1] + 3], [p[0] + 5, p[1] + 3], "#9ca3af", 2) + `<rect x="${p[0] - 8}" y="${p[1] - 1}" width="4" height="8" fill="#9ca3af"/><rect x="${p[0] + 4}" y="${p[1] - 1}" width="4" height="8" fill="#9ca3af"/>`; }
+        case "arrow": return `<path d="M${pr.at[0]},${pr.at[1]} l0,${pr.up ? -10 : 10} m-3,${pr.up ? 3 : -3} l3,${pr.up ? -3 : 3} l3,${pr.up ? 3 : -3}" stroke="${ACC}" stroke-width="1.5" fill="none"/>`;
+      }
+      return "";
+    }).join("");
+  }
+  function drawSide(p, props) {
+    const J = solveSide(p);
+    let s = drawProps(props.filter(x => x.t !== "band" && x.t !== "bandW" && x.t !== "db"), J);
+    s += pl([J.H, J.K2, J.A2, J.F2], FAR, 3.2) + pl([J.S, J.E2, J.W2], FAR, 3.2);
+    s += ln(J.H, J.top, NEAR, 4) + pl([J.H, J.K, J.A, J.F], NEAR, 3.6) + pl([J.S, J.E, J.W], NEAR, 3.4);
+    s += `<circle cx="${J.head[0].toFixed(1)}" cy="${J.head[1].toFixed(1)}" r="${L.head}" fill="#0f1115" stroke="${NEAR}" stroke-width="3"/>`;
+    s += drawProps(props.filter(x => x.t === "band" || x.t === "bandW" || x.t === "db"), J);
+    return s;
+  }
+  // vista frontale (wall slide, extrarotazioni, pettorali): angoli per il lato destro, sinistro specchiato
+  function drawFront(p, props) {
+    const cx = 100, sh = [cx + 11, 108], shL = [cx - 11, 108];
+    let s = drawProps(props, {});
+    s += ln([cx, 140], [cx, 106], NEAR, 4) + ln(shL, sh, NEAR, 3.4) + ln([cx - 7, 140], [cx + 7, 140], NEAR, 3.4);
+    s += pl([[cx + 7, 140], [cx + 9, 164], [cx + 10, 187]], NEAR, 3.6) + pl([[cx - 7, 140], [cx - 9, 164], [cx - 10, 187]], NEAR, 3.6);
+    const arm = (root, ua, fa, fs, m) => { const E = [root[0] + m * Math.sin(ua * R) * L.ua, root[1] - Math.cos(ua * R) * L.ua];
+      const W = [E[0] + m * Math.sin(fa * R) * L.fa * fs, E[1] - Math.cos(fa * R) * L.fa * Math.abs(fs)]; return [E, W]; };
+    const [E, W] = arm(sh, p.ua, p.fa, p.fs ?? 1, 1);
+    const [E2, W2] = arm(shL, p.ua2 ?? p.ua, p.fa2 ?? p.fa, p.fs2 ?? p.fs ?? 1, -1);
+    s += pl([sh, E, W], NEAR, 3.4) + pl([shL, E2, W2], NEAR, 3.4);
+    s += `<circle cx="${cx}" cy="96" r="7" fill="#0f1115" stroke="${NEAR}" stroke-width="3"/>`;
+    if (p.band) s += ln(W, [190, W[1]], BAND, 1.6);
+    return s;
+  }
+  // open book: vista dalla testa, il braccio di sopra ruota da un lato all'altro
+  // tergicristalli: vista frontale, seduto; r da -1 a 1 = ginocchia che cadono da un lato all'altro
+  function drawWipers(p) {
+    const pel = [100, 180], fL = [72, 187], fR = [128, 187];
+    let s = ln([5, 189.5], [195, 189.5], PROP, 2);
+    s += ln(pel, [100, 148], NEAR, 4) + `<circle cx="100" cy="137" r="7" fill="#0f1115" stroke="${NEAR}" stroke-width="3"/>`;
+    s += pl([[90, 151], [80, 168], [74, 187]], FAR, 3) + pl([[110, 151], [120, 168], [126, 187]], FAR, 3);
+    const kx = p.r * 22;
+    const kL = [86 + kx, 166 + Math.abs(p.r) * 12], kR = [114 + kx, 166 + Math.abs(p.r) * 12];
+    s += pl([[94, 180], kL, fL], NEAR, 3.6) + pl([[106, 180], kR, fR], NEAR, 3.6);
+    s += `<text x="100" y="110" fill="${PROP}" font-size="8" text-anchor="middle">vista frontale · seduto, mani dietro</text>`;
+    return s;
+  }
+  function drawOpenBook(p) {
+    const sh = [100, 172];
+    let s = ln([5, 189.5], [195, 189.5], PROP, 2);
+    s += `<ellipse cx="100" cy="176" rx="12" ry="10" fill="none" stroke="${FAR}" stroke-width="2"/>`;
+    s += ln(sh, [138, 185], FAR, 3.2) + `<circle cx="100" cy="160" r="7" fill="#0f1115" stroke="${NEAR}" stroke-width="3"/>`;
+    s += ln(sh, mv(sh, p.r, 33), NEAR, 3.6);
+    s += `<path d="M140,150 A40,40 0 0 0 60,150" fill="none" stroke="${ACC}" stroke-width="1" stroke-dasharray="3 3"/>`;
+    s += `<text x="100" y="104" fill="${PROP}" font-size="8" text-anchor="middle">vista dalla testa · ginocchia ferme a destra</text>`;
+    return s;
+  }
+  function frameAt(A, time) {
+    const F = A.f, segs = [];
+    let total = F[0].h || 0;
+    for (let i = 1; i < F.length; i++) total += (F[i].d || 0.8) + (F[i].h || 0);
+    let t = time % total;
+    if (t < (F[0].h || 0)) return F[0];
+    t -= F[0].h || 0;
+    for (let i = 1; i < F.length; i++) {
+      const d = F[i].d || 0.8, h = F[i].h || 0;
+      if (t < d) return lerp(F[i - 1], F[i], ease(t / d));
+      t -= d;
+      if (t < h) return F[i];
+      t -= h;
+    }
+    return F[F.length - 1];
+  }
+  function render(A, p) {
+    if (A.view === "front") return drawFront(p, A.props || []);
+    if (A.view === "openbook") return drawOpenBook(p);
+    if (A.view === "wipers") return drawWipers(p);
+    return drawSide(p, A.props || []);
+  }
+  // ---- libreria pose ----
+  const FL = { t: "floor" };
+  const STAND = { H: [100, 140], t: 0, A: [100, 187], pt: 0 };
+  const circ = [180, 135, 90, 45, 0, -45, -90, -135, -180].map((wa, i) => ({ ...STAND, wa, d: .3 }));
+  const HANG_HI = { H: [100, 93], t: 0, W: [100, 30], A: [100, 139], sc: 0 };
+  const PULL_TOP = { H: [93, 74], t: 8, W: [100, 30], A: [97, 120], sc: -1 };
+  const LOW = 80;
+  const SUPPORT = { H: [100, 79], t: -10, W: [100, LOW], A: [107, 125], sc: 0 };
+  const TRANS = { H: [86, 101], t: 38, W: [100, LOW], A: [100, 146], sc: 0 };
+  const LOWPULL = { H: [90, 120], t: 6, W: [100, LOW], A: [106, 164], sc: 0 };
+  const LOWHANG = { H: [100, 143], t: 0, W: [100, LOW], A: [82, 172], sc: 2 };
+  const HS_WALL = { H: [127, 124], t: 182, W: [121, 187], A: [131, 78], pt: 1, kb: 1 };
+  const HS_WALLB = { H: [127, 124], t: 180, W: [126, 187], A: [134, 78], pt: 1, kb: 1 };
+  const DIP_TOP = { H: [99, 98], t: 3, W: [100, 100], A: [80, 132], kb: -1 };
+  const DIP_BOT = { H: [97, 118], t: 22, W: [100, 100], A: [76, 150], kb: -1 };
+  const SB_BOT = { H: [91, 99], t: 30, W: [100, LOW], A: [108, 142], sc: 0 };
+  const PIKE_UP = { H: [84, 146], t: 115, W: [110, 187], A: [64, 187], pt: 0, hd: 0 };
+  const PIKE_DN = { H: [86, 150], t: 128, W: [110, 187], A: [64, 187], pt: 0, hd: 0 };
+  const PIKEEL_UP = { H: [96, 126], t: 150, W: [112, 187], A: [62, 152], pt: 0 };
+  const PIKEEL_DN = { H: [95, 133], t: 160, W: [112, 187], A: [62, 152], pt: 0 };
+  const lib = {
+    circ: { props: [FL], f: circ.map((f, i) => i === 0 ? { ...f, h: 0 } : f) },
+    disloc: { props: [FL, { t: "bandW" }], f: [150, 90, 10, -60, 10, 90, 150].map((wa, i) => ({ ...STAND, wa, d: .7, h: i === 3 ? .3 : 0 })) },
+    scap: { props: [FL, { t: "bar", at: [100, 30] }], f: [{ ...HANG_HI, H: [100, 96], sc: 3, h: .6 }, { ...HANG_HI, H: [100, 90], sc: -3, d: .6, h: 1 }, { ...HANG_HI, H: [100, 96], sc: 3, d: .6 }] },
+    wrist: { props: [FL], f: [{ H: [98, 163], t: 72, W: [127, 187], A: [74, 187], kb: 1, hd: 30, h: .3 }, { H: [104, 162], t: 76, W: [127, 187], A: [74, 187], kb: 1, hd: 30, d: 1.2 }, { H: [98, 163], t: 72, W: [127, 187], A: [74, 187], kb: 1, hd: 30, d: 1.2 }] },
+    rom: { props: [FL], f: [{ ...STAND, wa: 180, h: .6 }, { ...STAND, wa: 8, d: 1.4, h: 1.2 }, { ...STAND, wa: 180, d: 1 }] },
+    puppy: { props: [FL], f: [{ H: [82, 163], t: 108, W: [146, 186], A: [58, 187], kb: 1, hd: 20, h: .5 }, { H: [82, 163], t: 118, W: [146, 186], A: [58, 187], kb: 1, hd: 20, d: 2, h: 1 }, { H: [82, 163], t: 108, W: [146, 186], A: [58, 187], kb: 1, hd: 20, d: 2 }] },
+    hang: { props: [FL, { t: "bar", at: [100, 30] }], f: [{ ...HANG_HI, H: [100, 96], sc: 3, h: 1 }, { ...HANG_HI, H: [100, 96], sc: 3, t: 3, d: 2 }, { ...HANG_HI, H: [100, 96], sc: 3, t: 0, d: 2 }] },
+    wallslide: { view: "front", props: [{ t: "wall", x: 0 }], f: [{ ua: 95, fa: 0, h: .5 }, { ua: 35, fa: 22, d: 1.5, h: .5 }, { ua: 95, fa: 0, d: 1.5 }] },
+    latpnf: { props: [FL, { t: "chair", x: 132, y: 160, w: 34 }], f: [{ H: [92, 163], t: 92, W: [124, 152], A: [68, 187], kb: 1, eb: 1, hd: 10, h: 1.5 }, { H: [91, 163], t: 104, W: [122, 156], A: [68, 187], kb: 1, eb: 1, hd: 10, d: 2, h: 1.5 }, { H: [92, 163], t: 92, W: [124, 152], A: [68, 187], kb: 1, eb: 1, hd: 10, d: 1 }] },
+    openbook: { view: "openbook", f: [{ r: 80, h: .4 }, { r: 0, d: 1.2 }, { r: -80, d: 1.2, h: .8 }, { r: 0, d: 1.2 }, { r: 80, d: 1.2 }] },
+    hscw: { props: [FL, { t: "wall", x: 140 }], f: [
+      { H: [94, 166], t: -69, W: [66, 187], A: [138, 183], pt: 1, h: .6 },
+      { H: [117, 130], t: -150, W: [100, 187], A: [139, 92], pt: 1, d: 1.5 },
+      { ...HS_WALL, d: 1.5, h: 3 }] },
+    taps: { props: [FL, { t: "wall", x: 140 }], f: [{ ...HS_WALL, h: .4 }, { ...HS_WALL, W2: [122, 150], eb2: -1, d: .6, h: .3 }, { ...HS_WALL, d: .6, h: .4 }, { ...HS_WALL, W: [122, 150], W2: [126, 187], eb: -1, d: .6, h: .3 }, { ...HS_WALL, d: .6 }] },
+    toepull: { props: [FL, { t: "wall", x: 140 }], f: [{ ...HS_WALL, h: .6 }, { ...HS_WALL, H: [126, 124], A: [127, 78], d: .9, h: 1.4 }, { ...HS_WALL, d: .7 }] },
+    kickup: { props: [FL, { t: "wall", x: 140 }], f: [
+      { H: [90, 141], t: 8, wa: 10, A: [76, 187], A2: [108, 187], h: .6 },
+      { H: [106, 132], t: 150, W: [124, 187], A: [78, 112], A2: [110, 187], kb2: -1, pt: 1, d: .8 },
+      { ...HS_WALLB, W: [124, 187], d: .7, h: 1.5 }] },
+    heelpull: { props: [FL, { t: "wall", x: 140 }], f: [{ ...HS_WALLB, h: .6 }, { ...HS_WALLB, H: [126, 124], A: [126, 78], d: .9, h: 1.4 }, { ...HS_WALLB, d: .7 }] },
+    falsegrip: { props: [FL, { t: "bar", at: [100, 30] }], f: [{ ...HANG_HI, W: [100, 25], H: [100, 89], A: [100, 135], sc: -1, h: 2 }, { ...HANG_HI, W: [100, 25], H: [100, 89], A: [100, 135], sc: -1, t: 2, d: 1.5 }] },
+    expull: { props: [FL, { t: "bar", at: [100, 30] }], f: [{ ...HANG_HI, h: .6 }, { ...PULL_TOP, H: [94, 70], d: .45, h: .25 }, { ...HANG_HI, d: 1.2 }] },
+    muneg: { props: [FL, { t: "bar", at: [100, LOW] }], f: [{ ...SUPPORT, h: .8 }, { ...TRANS, d: 2.5 }, { ...LOWPULL, d: 1 }, { ...LOWHANG, d: 2.5, h: .6 }, { ...SUPPORT, d: .7 }] },
+    muband: { props: [FL, { t: "bar", at: [100, LOW] }, { t: "band", from: [100, LOW], to: "A" }], f: [{ ...LOWHANG, h: .6 }, { ...LOWPULL, d: .6 }, { ...TRANS, d: .4 }, { ...SUPPORT, d: .5, h: .8 }, { ...LOWHANG, d: 1.8 }] },
+    hollow: { props: [FL], f: [{ H: [102, 183], t: -72, W: [42, 164], A: [147, 165], pt: 1, hd: 15, h: 1.5 }, { H: [102, 183], t: -71, W: [42, 162], A: [147, 163], pt: 1, hd: 15, d: 1.5 }] },
+    extrot: { view: "front", f: [{ ua: 180, fa: 90, fs: -.6, h: .3 }, { ua: 180, fa: 90, fs: 1, d: 1.3, h: .4 }, { ua: 180, fa: 90, fs: -.6, d: 1.3 }] },
+    sbdip: { props: [FL, { t: "bar", at: [100, LOW] }], f: [{ ...SUPPORT, h: .5 }, { ...SB_BOT, d: 1.3 }, { ...SUPPORT, d: 1 }] },
+    dipdeep: { props: [FL, { t: "par", y: 100, x1: 68, x2: 140 }], f: [{ ...DIP_TOP, h: .5 }, { ...DIP_BOT, d: 3 }, { ...DIP_TOP, d: 1 }] },
+    dipw: { props: [FL, { t: "par", y: 100, x1: 68, x2: 140 }, { t: "db", at: "A" }], f: [{ ...DIP_TOP, h: .5 }, { ...DIP_BOT, d: 1.8 }, { ...DIP_TOP, d: 1.2 }] },
+    pullslow: { props: [FL, { t: "bar", at: [100, 30] }], f: [{ ...HANG_HI, h: .5 }, { ...PULL_TOP, d: 1.2, h: .3 }, { ...HANG_HI, d: 3 }] },
+    pullw: { props: [FL, { t: "bar", at: [100, 30] }, { t: "db", at: "A" }], f: [{ ...HANG_HI, h: .5 }, { ...PULL_TOP, d: 1.4, h: .3 }, { ...HANG_HI, d: 1.6 }] },
+    pike: { props: [FL], f: [{ ...PIKE_UP, h: .5 }, { ...PIKE_DN, d: 1.5 }, { ...PIKE_UP, d: 1.2 }] },
+    pikeel: { props: [FL, { t: "chair", x: 40, y: 154, w: 30 }], f: [{ ...PIKEEL_UP, h: .5 }, { ...PIKEEL_DN, d: 1.5 }, { ...PIKEEL_UP, d: 1.2 }] },
+    facepull: { props: [FL, { t: "band", from: [185, 108], to: "W" }], f: [{ ...STAND, wa: 90, h: .4 }, { ...STAND, W: [104, 97], eb: -1, d: 1.2, h: .5 }, { ...STAND, wa: 90, d: 1.2 }] },
+    pecs: { view: "front", props: [{ t: "wall", x: 132 }], f: [{ ua: 90, fa: 0, ua2: 175, fa2: 178, h: 2 }, { ua: 92, fa: 0, ua2: 175, fa2: 178, d: 2 }] },
+    child: { props: [FL], f: [{ H: [80, 172], t: 100, W: [150, 186], A: [77, 187], kb: -1, hd: 25, pt: 1, h: 1 }, { H: [79, 173], t: 104, W: [150, 186], A: [77, 187], kb: -1, hd: 25, pt: 1, d: 2, h: 1 }, { H: [80, 172], t: 100, W: [150, 186], A: [77, 187], kb: -1, hd: 25, pt: 1, d: 2 }] },
+  };
+  const PAR = { t: "par", y: 100, x1: 68, x2: 140 };
+  const SUP = { H: [100, 97], t: 0, W: [100, 100] };
+  Object.assign(lib, {
+    kneeraise: { props: [FL, { t: "bar", at: [100, 30] }], f: [{ ...HANG_HI, A: undefined, lla: [178, 182], sc: -1, h: .4 }, { ...HANG_HI, A: undefined, lla: [80, 175], t: -6, sc: -1, d: .9, h: .3 }, { ...HANG_HI, A: undefined, lla: [178, 182], sc: -1, d: 1.6 }] },
+    legraise: { props: [FL, { t: "bar", at: [100, 30] }], f: [{ ...HANG_HI, A: undefined, lla: [178, 180], sc: -1, pt: 1, h: .4 }, { ...HANG_HI, A: undefined, lla: [82, 84], t: -10, sc: -1, pt: 1, d: 1.1, h: .3 }, { ...HANG_HI, A: undefined, lla: [178, 180], sc: -1, pt: 1, d: 1.8 }] },
+    lsit: { props: [FL, PAR], f: [{ ...SUP, lla: [175, 180], h: .6 }, { ...SUP, lla: [75, 185], t: 4, d: .8, h: 2.5 }, { ...SUP, lla: [175, 180], d: .8 }] },
+    deadbug: { props: [FL], f: [
+      { H: [104, 183], t: -90, wa: 0, wa2: 0, lla: [0, 90], lla2: [0, 90], h: .4 },
+      { H: [104, 183], t: -90, wa: 0, wa2: -88, lla: [86, 88], lla2: [0, 90], d: 1.3, h: .3 },
+      { H: [104, 183], t: -90, wa: 0, wa2: 0, lla: [0, 90], lla2: [0, 90], d: 1.2, h: .3 },
+      { H: [104, 183], t: -90, wa: -88, wa2: 0, lla: [0, 90], lla2: [86, 88], d: 1.3, h: .3 },
+      { H: [104, 183], t: -90, wa: 0, wa2: 0, lla: [0, 90], lla2: [0, 90], d: 1.2 }] },
+    hipflex: { props: [FL], f: [{ H: [94, 163], t: 0, wa: 165, A: [62, 187], A2: [118, 187], kb: 1, kb2: -1, h: .8 }, { H: [100, 166], t: -6, wa: 165, A: [62, 187], A2: [118, 187], kb: 1, kb2: -1, d: 1.8, h: 1.5 }, { H: [94, 163], t: 0, wa: 165, A: [62, 187], A2: [118, 187], kb: 1, kb2: -1, d: 1.2 }] },
+    wipers: { view: "wipers", f: [{ r: 0, h: .3 }, { r: -1, d: 1.2, h: .3 }, { r: 1, d: 2, h: .3 }, { r: 0, d: 1 }] },
+    deepsquat: { props: [FL], f: [{ ...STAND, wa: 180, h: .6 }, { H: [86, 168], t: 18, wa: 95, A: [100, 187], kb: -1, d: 1.6, h: 2.5 }, { ...STAND, wa: 180, d: 1.4 }] },
+    pikestr: { props: [FL], f: [{ H: [86, 184], t: 15, W: [108, 178], la: 90, pt: 0, eb: -1, h: .6 }, { H: [86, 184], t: 72, W: [132, 178], la: 90, pt: 0, eb: -1, hd: 20, d: 2, h: 2 }, { H: [86, 184], t: 15, W: [108, 178], la: 90, pt: 0, eb: -1, d: 1.5 }] },
+  });
+  lib.maxpull = lib.pullslow; lib.maxdip = lib.dipdeep; lib.maxfg = lib.falsegrip;
+  lib.maxhs = { props: lib.hscw.props, f: [{ ...HS_WALL, h: 2 }, { ...HS_WALL, H: [127, 124], d: 1 }] };
+  // lettori attivi: uno per contenitore
+  const players = new Map();
+  function play(el, key) {
+    if (!el) return;
+    const cur = players.get(el);
+    if (cur && cur.key === key) return;
+    stop(el);
+    const A = lib[key];
+    if (!A) { el.innerHTML = ""; return; }
+    el.innerHTML = `<svg viewBox="0 10 200 185" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Animazione esercizio"></svg>`;
+    const svg = el.firstChild, t0 = performance.now();
+    const st = { key, raf: 0 };
+    let last = -1e9;
+    const loop = () => { const now = performance.now(); if (now - last > 33) { last = now; svg.innerHTML = render(A, frameAt(A, (now - t0) / 1000)); } st.raf = requestAnimationFrame(loop); };  // ~30 fps: basta e risparmia batteria
+    loop(); players.set(el, st);
+  }
+  function stop(el) { const p = players.get(el); if (p) { cancelAnimationFrame(p.raf); players.delete(el); } if (el) el.innerHTML = ""; }
+  // fotogrammi statici, per i test
+  function still(key, i) { const A = lib[key]; return `<svg viewBox="0 10 200 185" xmlns="http://www.w3.org/2000/svg">${render(A, A.f[i])}</svg>`; }
+  return { play, stop, still, lib, has: k => !!lib[k] };
+})();
+
+/* ================= PROGRAMMA =================
+   Sett. 1-3 base, 4 scarico+test, 5-7 sviluppo, 8 scarico+test. k = progressione dentro la fase. */
+function phaseOf(w) { return w <= 3 ? "Base" : w === 4 ? "Scarico + test" : w <= 7 ? "Sviluppo" : "Scarico + test"; }
+function build(id, w) {
+  const dl = w === 4 || w === 8, dev = w >= 5;
+  const k = w <= 3 ? w - 1 : (w >= 5 && w <= 7 ? w - 5 : 1);
+  const S = n => Math.max(1, dl ? n - 1 : n);
+  const hsHold = dev ? 45 + 5 * k : 30 + 5 * k;
+  const warm = { title: "Riscaldamento", items: [
+    { ex: "circ", sets: 1, target: 40 },
+    { ex: "disloc", sets: 1, target: 12 },
+    { ex: "scap", sets: 1, target: 8 },
+    { ex: "wrist", sets: 1, target: 60 },
+  ]};
+  const cool = { title: "Defaticamento", items: [
+    { ex: "pecs", sets: 1, target: 60 },
+    { ex: "child", sets: 1, target: 60 },
+  ]};
+  if (id === "A") return { title: "A · Trazione e muscle-up", blocks: [
+    warm,
+    { title: "Mobilità spalle e anche", items: [
+      { ex: "rom", sets: 1, target: 20 },
+      { ex: "puppy", sets: 3, target: 40, rest: 15 },
+      { ex: "hang", sets: dev ? 2 : 3, target: 30 + 5 * k, rest: 45 },
+      { ex: "wallslide", sets: 2, target: 10, rest: 20 },
+      { ex: "rom", sets: 1, target: 20 },
+      { ex: "hipflex", sets: 2, target: 60, rest: 10 },
+      { ex: "wipers", sets: 2, target: 8, rest: 15 },
+    ]},
+    { title: "Verticale", items: [
+      { ex: "hscw", sets: S(4), target: hsHold, rest: 60 },
+      { ex: "taps", sets: 3, target: dev ? 8 : 6, rest: 60 },
+      { ex: "toepull", sets: 3, target: 5, rest: 45 },
+    ]},
+    { title: "Muscle-up", items: [
+      { ex: "falsegrip", sets: 3, target: dev ? 25 + 5 * k : 15 + 5 * k, rest: 60 },
+      { ex: "expull", sets: S(5), target: dev ? 4 + k : 3 + k, rest: 120 },
+      dev ? { ex: "muband", sets: S(4), target: 3, rest: 150 } : { ex: "muneg", sets: S(3), target: 2, rest: 120 },
+    ]},
+    { title: "Addominali", items: [
+      dev ? { ex: "legraise", sets: 3, target: 6 + k, rest: 60 } : { ex: "kneeraise", sets: 3, target: 8 + k, rest: 60 },
+      { ex: "hollow", sets: 3, target: dev ? 35 + 5 * k : 25 + 5 * k, rest: 30 },
+    ]},
+    { title: "Accessori", items: [
+      { ex: "extrot", sets: 2, target: 15, rest: 20 },
+    ]},
+    cool,
+  ]};
+  if (id === "B") return { title: "B · Spinta e dip alla sbarra", blocks: [
+    warm,
+    { title: "Mobilità spalle e anche", items: [
+      { ex: "rom", sets: 1, target: 20 },
+      { ex: "puppy", sets: 2, target: 40, rest: 15 },
+      { ex: "latpnf", sets: 3, target: 45, rest: 15 },
+      { ex: "openbook", sets: 2, target: 8, rest: 15 },
+      { ex: "rom", sets: 1, target: 20 },
+      { ex: "deepsquat", sets: 2, target: 40, rest: 15 },
+      { ex: "pikestr", sets: 2, target: 40, rest: 15 },
+    ]},
+    { title: "Verticale", items: [
+      { ex: "kickup", sets: 2, target: 4, rest: 45 },
+      { ex: "hscw", sets: S(3), target: hsHold, rest: 60 },
+      { ex: "heelpull", sets: 3, target: 5, rest: 45 },
+    ]},
+    { title: "Forza", items: [
+      { ex: "sbdip", sets: S(4), target: dev ? 6 + k : 4 + k, rest: 120 },
+      dev ? { ex: "dipw", sets: S(3), target: 8, rest: 120 } : { ex: "dipdeep", sets: S(3), target: 10, rest: 90 },
+      dev ? { ex: "pullw", sets: S(4), target: 5, rest: 120 } : { ex: "pullslow", sets: S(3), target: 6, rest: 90 },
+    ]},
+    { title: "Addominali", items: [
+      { ex: "lsit", sets: 3, target: dev ? 15 + 5 * k : 10 + 5 * k, rest: 60 },
+      { ex: "deadbug", sets: 2, target: 8, rest: 30 },
+    ]},
+    { title: "Accessori", items: [
+      dev ? { ex: "pikeel", sets: 3, target: 6 + k, rest: 60 } : { ex: "pike", sets: 3, target: 8 + k, rest: 60 },
+      { ex: "facepull", sets: 2, target: 15, rest: 30 },
+    ]},
+    cool,
+  ]};
+  return { title: "Test · Massimali", blocks: [
+    warm,
+    { title: "Test", items: [
+      { ex: "rom", sets: 1, target: 20 },
+      { ex: "maxpull", sets: 1, target: 0, rest: 180 },
+      { ex: "maxdip", sets: 1, target: 0, rest: 180 },
+      { ex: "maxhs", sets: 1, target: 0, rest: 120 },
+      { ex: "maxfg", sets: 1, target: 0 },
+    ]},
+    cool,
+  ]};
+}
+function flatten(plan) {
+  const items = [];
+  plan.blocks.forEach(b => b.items.forEach(it => {
+    for (let s = 1; s <= it.sets; s++) items.push({ ...it, block: b.title, set: s, def: EX[it.ex] });
+  }));
+  return items;
+}
+function estimateMin(plan) {
+  let sec = 0;
+  plan.blocks.forEach(b => b.items.forEach(it => {
+    const d = EX[it.ex];
+    const work = d.max ? 45 : d.kind === "reps" ? it.target * 3.5 * (d.perSide ? 2 : 1) : it.target;
+    sec += SETUP_SEC + it.sets * work + (it.sets - 1) * (it.rest || 0) + 10;
+  }));
+  return Math.round(sec / 60);
+}
+
+/* ================= VOCE E SUONI ================= */
+const Voice = {
+  on: true, v: null, ok: "speechSynthesis" in window,
+  init() {
+    if (!this.ok) return;
+    const pick = () => {
+      const vs = speechSynthesis.getVoices();
+      this.v = vs.find(v => /^it[-_]IT/i.test(v.lang)) || vs.find(v => /^it/i.test(v.lang)) || null;
+    };
+    pick(); try { speechSynthesis.onvoiceschanged = pick; } catch (e) {}
+  },
+  say(text, interrupt = false) {
+    if (!this.on || !this.ok || !text) return;
+    try {
+      if (interrupt) speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "it-IT"; if (this.v) u.voice = this.v; u.rate = 1.05;
+      speechSynthesis.speak(u);
+    } catch (e) {}
+  },
+  stop() { try { this.ok && speechSynthesis.cancel(); } catch (e) {} }
+};
+let actx = null;
+function beep(freq = 880, dur = 0.12) {
+  try {
+    if (!actx) return;
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.frequency.value = freq; g.gain.value = 0.15;
+    o.connect(g); g.connect(actx.destination);
+    o.start(); g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + dur); o.stop(actx.currentTime + dur + 0.02);
+  } catch (e) {}
+}
+
+/* ================= GEOMETRIA E TRACKER =================
+   Landmark MediaPipe: 0 naso, 11/12 spalle, 13/14 gomiti, 15/16 polsi, 23/24 anche, 25/26 ginocchia, 27/28 caviglie.
+   Coordinate convertite in pixel per non distorcere gli angoli. */
+function ang(a, b, c) {
+  if (!a || !b || !c) return null;
+  const x1 = a.x - b.x, y1 = a.y - b.y, x2 = c.x - b.x, y2 = c.y - b.y;
+  const d = Math.hypot(x1, y1) * Math.hypot(x2, y2);
+  if (!d) return null;
+  return Math.acos(Math.max(-1, Math.min(1, (x1 * x2 + y1 * y2) / d))) * 180 / Math.PI;
+}
+const vis = p => (p && p.v != null ? p.v : 0);
+function bestSide(P) {
+  const L = [11, 13, 15, 23, 25, 27], R = [12, 14, 16, 24, 26, 28];
+  const score = ids => ids.slice(0, 4).reduce((s, i) => s + vis(P[i]), 0);
+  const left = score(L) >= score(R), ids = left ? L : R;
+  return { key: left ? "sx" : "dx", sh: P[ids[0]], el: P[ids[1]], wr: P[ids[2]], hip: P[ids[3]], kn: P[ids[4]], an: P[ids[5]],
+           q: Math.min(...ids.slice(0, 3).map(i => vis(P[i]))) };
+}
+class EMA { constructor(a) { this.a = a; this.v = null; } f(x) { if (x == null) return this.v; this.v = this.v == null ? x : this.v + this.a * (x - this.v); return this.v; } }
+
+// Trazioni: vista frontale. mode "chin" = naso sopra i polsi; "chest" = spalle vicine alla sbarra.
+class PullTracker {
+  constructor(mode) { this.mode = mode; this.el = new EMA(.5); this.r = new EMA(.5); this.armed = false; this.pulling = false; this.wasTop = false; this.partials = 0; this.peaks = []; this.minR = 9; }
+  update(P) {
+    const need = [11, 12, 13, 14, 15, 16];
+    if (need.some(i => vis(P[i]) < .4)) return null;
+    const el = this.el.f((ang(P[11], P[13], P[15]) + ang(P[12], P[14], P[16])) / 2);
+    const shY = (P[11].y + P[12].y) / 2, wrY = (P[15].y + P[16].y) / 2;
+    const shW = Math.abs(P[11].x - P[12].x);
+    let torso = vis(P[23]) > .4 && vis(P[24]) > .4 ? (P[23].y + P[24].y) / 2 - shY : 0;
+    if (torso < shW * .8) torso = shW * 1.4;
+    const r = this.r.f((shY - wrY) / torso);           // ~1.2 appeso, ~0.3 petto alla sbarra
+    const top = this.mode === "chest" ? r < 0.35 : (vis(P[0]) > .4 && P[0].y < wrY);
+    const out = { metric: `Gomiti ${Math.round(el)}° · spalle-sbarra ${r.toFixed(2)}` };
+    if (this.armed) this.minR = Math.min(this.minR, r);
+    if (!this.armed && el > 145) { this.armed = true; this.pulling = false; this.minR = 9; }
+    if (this.armed && el < 120) this.pulling = true;
+    if (this.armed && top) {
+      this.armed = false; this.pulling = false; this.peaks.push(r); out.rep = true;
+    } else if (!this.armed && top && !this.wasTop) {
+      out.cue = { k: "ext", t: "Estendi le braccia in basso" }; this.partials++;
+    } else if (this.armed && this.pulling && el > 145) {
+      this.pulling = false; this.partials++;
+      out.cue = { k: "high", t: this.mode === "chest" ? "Più alto: petto alla sbarra" : "Mento sopra la sbarra" };
+    }
+    this.wasTop = top;
+    return out;
+  }
+  summary() { return { incomplete: this.partials }; }
+}
+// Dip: vista laterale, angolo del gomito. bottom = soglia di profondità.
+class DipTracker {
+  constructor(bottom) { this.bottom = bottom; this.el = new EMA(.5); this.armed = false; this.desc = false; this.minEl = 180; this.depths = []; this.shallow = 0; }
+  update(P) {
+    const s = bestSide(P);
+    if (s.q < .4) return null;
+    const el = this.el.f(ang(s.sh, s.el, s.wr));
+    if (el == null) return null;
+    const out = { metric: `Gomito ${Math.round(el)}°` + (this.desc ? ` · min ${Math.round(this.minEl)}°` : "") };
+    if (!this.armed) { if (el > 150) this.armed = true; return out; }
+    if (!this.desc) { if (el < 140) { this.desc = true; this.minEl = el; } }
+    else {
+      this.minEl = Math.min(this.minEl, el);
+      if (el > 155) {
+        this.desc = false;
+        if (this.minEl <= this.bottom) { this.depths.push(this.minEl); out.rep = true; }
+        else { this.shallow++; out.cue = { k: "deep", t: "Più profondo: gomiti sotto i 90 gradi" }; }
+      }
+    }
+    return out;
+  }
+  summary() { const n = this.depths.length; return { avgDepth: n ? Math.round(this.depths.reduce((a, b) => a + b, 0) / n) : null, shallow: this.shallow }; }
+}
+// Verticale: vista laterale. Spalle aperte = angolo anca-spalla-polso ~180; corpo in linea = spalla-anca-caviglia ~180.
+class HsTracker {
+  constructor() { this.sh = new EMA(.3); this.hp = new EMA(.3); this.sum = { sh: 0, hp: 0, n: 0, nh: 0 }; this.lastInv = 0; this.everInv = false; }
+  update(P, now) {
+    const s = bestSide(P);
+    if (vis(s.sh) < .35 || vis(s.wr) < .35 || vis(s.hip) < .35) return null;
+    const inv = s.wr.y > s.sh.y && s.sh.y > s.hip.y;
+    if (!inv) return { inv: false, metric: "Non in verticale" };
+    this.everInv = true; this.lastInv = now;
+    const shA = this.sh.f(ang(s.hip, s.sh, s.wr));
+    const end = vis(s.an) > .3 ? s.an : vis(s.kn) > .3 ? s.kn : null;
+    const hpA = end ? this.hp.f(ang(s.sh, s.hip, end)) : null;
+    this.sum.sh += shA; this.sum.n++;
+    if (hpA != null) { this.sum.hp += hpA; this.sum.nh++; }
+    let cue = null;
+    if (shA < 160) cue = { k: "sh", t: "Spingi il pavimento, apri le spalle" };
+    else if (hpA != null && hpA < 160) cue = { k: "hp", t: "Costole dentro, glutei stretti: corpo in linea" };
+    return { inv: true, cue, metric: `Spalle ${Math.round(shA)}° · Anche ${hpA == null ? "–" : Math.round(hpA)}°` };
+  }
+  summary() { const s = this.sum; return { avgShoulder: s.n ? Math.round(s.sh / s.n) : null, avgHip: s.nh ? Math.round(s.hp / s.nh) : null }; }
+}
+// Flessione spalla: vista laterale in piedi. 0° braccio lungo il fianco, 180° braccio verticale sopra la testa.
+class RomTracker {
+  constructor() { this.a = new EMA(.4); this.best = { sx: 0, dx: 0 }; this.lastKey = null; }
+  update(P) {
+    const s = bestSide(P);
+    if (s.q < .4 || vis(s.hip) < .4) return null;
+    if (s.key !== this.lastKey) { this.a = new EMA(.4); this.lastKey = s.key; }
+    const f = this.a.f(ang(s.hip, s.sh, s.wr));
+    const lean = Math.atan2(Math.abs(s.sh.x - s.hip.x), Math.max(1, s.hip.y - s.sh.y)) * 180 / Math.PI;
+    const out = { metric: `Lato ${s.key} · ${Math.round(f)}° · max sx ${this.best.sx}° / dx ${this.best.dx}°` };
+    if (lean > 12 && f > 120) out.cue = { k: "lean", t: "Non inarcare: costole giù" };
+    else this.best[s.key] = Math.max(this.best[s.key], Math.round(f));
+    return out;
+  }
+  summary() { return { flexSx: this.best.sx || null, flexDx: this.best.dx || null }; }
+}
+function makeTracker(t) {
+  switch (t) {
+    case "pull-chin": return new PullTracker("chin");
+    case "pull-chest": return new PullTracker("chest");
+    case "dip": return new DipTracker(90);
+    case "dip-bar": return new DipTracker(100);
+    case "hs": return new HsTracker();
+    case "rom": return new RomTracker();
+  }
+  return null;
+}
+
+/* ================= FOTOCAMERA + POSA ================= */
+const CONN = [[11,12],[11,13],[13,15],[12,14],[14,16],[11,23],[12,24],[23,24],[23,25],[25,27],[24,26],[26,28]];
+const Pose = {
+  active: false, landmarker: null, stream: null, last: 0, lastSeen: 0, onPose: null, status: "",
+  setStatus(t) { this.status = t; $("#camStat").textContent = t; },
+  async start(facing) {
+    const cam = $("#cam"), video = $("#video");
+    cam.classList.toggle("mirror", facing === "user");
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { this.setStatus("Fotocamera non disponibile qui: modalità manuale"); return false; }
+    try {
+      this.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facing, width: { ideal: 640 }, height: { ideal: 480 } }, audio: false });
+    } catch (e) { this.setStatus("Fotocamera bloccata: modalità manuale"); return false; }
+    video.srcObject = this.stream;
+    try { await video.play(); } catch (e) {}
+    this.active = true;
+    this.setStatus("Carico il modello di posa…");
+    try {
+      const mp = await import(MP_URL);
+      const fs = await mp.FilesetResolver.forVisionTasks(WASM_URL);
+      const opts = d => ({ baseOptions: { modelAssetPath: MODEL_URL, delegate: d }, runningMode: "VIDEO", numPoses: 1 });
+      try { this.landmarker = await mp.PoseLandmarker.createFromOptions(fs, opts("GPU")); }
+      catch (e) { this.landmarker = await mp.PoseLandmarker.createFromOptions(fs, opts("CPU")); }
+      this.setStatus("Analisi posa attiva");
+    } catch (e) {
+      console.warn("pose model", e);
+      this.setStatus("Modello non caricato: solo video, conteggio manuale");
+    }
+    this.loop();
+    return true;
+  },
+  loop() {
+    if (!this.active) return;
+    requestAnimationFrame(() => this.loop());
+    const video = $("#video"), now = performance.now();
+    if (!this.landmarker || video.readyState < 2 || now - this.last < 66) return;
+    this.last = now;
+    let res;
+    try { res = this.landmarker.detectForVideo(video, now); } catch (e) { return; }
+    const W = video.videoWidth, H = video.videoHeight;
+    const raw = res && res.landmarks && res.landmarks[0];
+    const cv = $("#overlay");
+    if (cv.width !== W) { cv.width = W; cv.height = H; }
+    const g = cv.getContext("2d");
+    g.clearRect(0, 0, W, H);
+    if (!raw) { this.onPose && this.onPose(null, now); return; }
+    this.lastSeen = now;
+    const P = raw.map(p => ({ x: p.x * W, y: p.y * H, v: p.visibility == null ? 1 : p.visibility }));
+    g.lineWidth = Math.max(3, W / 160); g.strokeStyle = "#4ade80"; g.fillStyle = "#fbbf24";
+    CONN.forEach(([a, b]) => { if (P[a].v > .4 && P[b].v > .4) { g.beginPath(); g.moveTo(P[a].x, P[a].y); g.lineTo(P[b].x, P[b].y); g.stroke(); } });
+    [0, 11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28].forEach(i => { if (P[i].v > .4) { g.beginPath(); g.arc(P[i].x, P[i].y, g.lineWidth * 1.6, 0, 7); g.fill(); } });
+    this.onPose && this.onPose(P, now);
+  },
+  stop() {
+    this.active = false;
+    try { this.stream && this.stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+    this.stream = null;
+  }
+};
+
+/* ================= MOTORE SESSIONE ================= */
+let S = null, wakeLock = null, timer = null, lastTick = 0;
+const cueState = { at: 0, byKey: {} };
+function cue(c) {
+  if (!c) return;
+  const now = performance.now();
+  if (now - cueState.at < 3500) return;
+  if (cueState.byKey[c.k] && now - cueState.byKey[c.k] < 9000) return;
+  cueState.at = now; cueState.byKey[c.k] = now;
+  $("#sCue").textContent = c.t; Voice.say(c.t);
+}
+const cur = () => S && S.items[S.i];
+const nextIt = () => S && S.items[S.i + 1];
+
+async function startSession(id) {
+  const plan = build(id, settings.week);
+  S = { id, week: settings.week, plan, items: flatten(plan), i: 0, phase: "setup", t: 0, reps: 0, paused: false, elapsed: 0,
+        log: { date: new Date().toISOString(), week: settings.week, session: id, sets: [] }, tracker: null, ending: false, quitArm: 0, lastPoseAt: 0, saidNoPose: false };
+  try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); actx.resume && actx.resume(); } catch (e) {}
+  Voice.on = settings.voice; Voice.say("Iniziamo. " + plan.title, true);
+  $("#main").classList.add("hidden"); $("#session").classList.remove("hidden");
+  $("#sSummary").classList.add("hidden"); $("#panel").classList.remove("hidden");
+  const stage = $("#stage");
+  if (settings.cam) {
+    stage.classList.remove("nocam"); $("#cam").classList.remove("hidden");
+    Pose.onPose = onPose;
+    Pose.start(settings.facing).then(ok => { if (!ok) { stage.classList.add("nocam"); $("#cam").classList.add("hidden"); } });
+  } else { stage.classList.add("nocam"); $("#cam").classList.add("hidden"); }
+  requestWake();
+  enterItem();
+  lastTick = performance.now();
+  clearInterval(timer); timer = setInterval(tick, 100);
+}
+async function requestWake() { try { if ("wakeLock" in navigator) wakeLock = await navigator.wakeLock.request("screen"); } catch (e) {} }
+document.addEventListener("visibilitychange", () => { if (S && document.visibilityState === "visible") requestWake(); });
+
+function describeTarget(it) {
+  const d = it.def;
+  if (d.max) return d.kind === "reps" ? "massimo ripetizioni" : "tenuta massima";
+  if (d.kind === "reps") return `${it.target} ripetizioni${d.perSide ? " per lato" : ""}`;
+  if (d.kind === "rom") return "10 secondi per lato";
+  return `${it.target} secondi`;
+}
+function enterItem() {
+  const it = cur();
+  if (!it) return finish();
+  S.tracker = null; $("#sCue").textContent = ""; $("#sMetric").textContent = "";
+  if (it.set === 1) {
+    S.phase = "setup"; S.t = SETUP_SEC;
+    const d = it.def, prev = S.items[S.i - 1];
+    const intro = !prev || prev.block !== it.block ? `Blocco ${it.block}. ` : "";
+    Voice.say(`${intro}${d.name}. ${it.sets > 1 ? it.sets + " serie da " : ""}${describeTarget(it)}. ${d.setup || ""} ${d.cues[0]}.`, true);
+  } else beginWork();
+  render();
+}
+function beginWork() {
+  const it = cur(), d = it.def;
+  S.phase = "work"; S.reps = 0; S.ending = false; S.saidNoPose = false; S.lastPoseAt = performance.now();
+  S.t = (d.kind === "time" || (d.kind === "hold" && !d.max)) ? it.target : 0;
+  S.halfSaid = false; S.tenSaid = false; S.sideSaid = false;
+  S.tracker = settings.cam && d.track && Pose.landmarker ? makeTracker(d.track) : null;
+  // ritmo automatico: la voce scandisce le ripetizioni e chiude la serie da sola
+  S.cad = d.kind === "reps" && !d.max && !S.tracker && settings.auto && d.cad
+    ? { cyc: d.cad, total: it.target * (d.perSide ? 2 : 1), fired: new Set(), lead: 1.2 } : null;
+  beep(1175, .18);
+  const go = it.sets > 1 && it.set === it.sets ? "Ultima serie, via!" : it.set > 1 ? pick(["Via", `Serie ${it.set}, via`, "Forza, via"]) : "Via";
+  Voice.say(go, true);
+  render();
+}
+function endWork() {
+  const it = cur(), d = it.def;
+  if (S.phase !== "work") return;
+  const actual = d.kind === "reps" ? (S.cad && d.perSide ? Math.min(it.target, Math.round(S.reps / 2)) : S.reps) : d.kind === "rom" ? null : (d.max ? Math.round(S.t) : Math.round(it.target - Math.max(0, S.t)));
+  const rec = { ex: it.ex, name: d.name, set: it.set, target: d.max ? "max" : it.target, actual };
+  if (S.cad) rec.auto = true;
+  if (S.tracker) Object.assign(rec, S.tracker.summary());
+  S.log.sets.push(rec);
+  if (d.kind === "rom" && rec.flexSx != null) Voice.say(`Sinistra ${rec.flexSx || "non rilevata"}, destra ${rec.flexDx || "non rilevata"} gradi`, true);
+  S.tracker = null;
+  const nx = nextIt();
+  if (!nx) { S.i++; return finish(); }
+  if (nx.ex === it.ex && it.rest) {
+    S.phase = "rest"; S.t = it.rest; S.tenSaid = false;
+    const mins = Math.floor(S.elapsed / 600) * 10;
+    const milestone = mins >= 10 && mins !== S.lastMilestone ? (S.lastMilestone = mins, ` Siamo a ${mins} minuti.`) : "";
+    Voice.say(`${pick(["Bene.", "Ottimo.", "Buona serie.", "Così."])} Recupero ${it.rest} secondi.${milestone}`, !(d.kind === "rom"));
+    render();
+  } else { S.i++; enterItem(); }
+}
+function tick() {
+  const now = performance.now(), dt = (now - lastTick) / 1000; lastTick = now;
+  if (!S || S.phase === "done") return;
+  if (S.paused) return;
+  S.elapsed += dt;
+  const it = cur(); if (!it) return;
+  const d = it.def;
+  const prevT = S.t;
+  if (S.phase === "setup" || S.phase === "rest") {
+    S.t -= dt;
+    if (S.phase === "rest" && !S.tenSaid && S.t <= 10 && prevT > 10) { S.tenSaid = true; Voice.say("10 secondi"); }
+    for (const k of [3, 2, 1]) if (prevT > k && S.t <= k) beep(660);
+    if (S.t <= 0) {
+      if (S.phase === "setup") beginWork();
+      else { S.i++; beginWork(); }
+    }
+  } else if (S.phase === "work") {
+    if (d.kind === "time" || (d.kind === "hold" && !d.max)) {
+      S.t -= dt;
+      if (d.half && !S.halfSaid && S.t <= it.target / 2) { S.halfSaid = true; Voice.say(d.half, true); beep(990); }
+      if (it.target >= 30 && !S.tenSaid && S.t <= 10) { S.tenSaid = true; Voice.say("Ultimi 10 secondi"); }
+      for (const k of [3, 2, 1]) if (prevT > k && S.t <= k) beep(660);
+      if (S.t <= 0) { beep(1320, .3); endWork(); }
+    } else {
+      S.t += dt;
+      if (S.cad) {
+        const c = S.cad, x = S.t - c.lead;           // tempo dentro la serie, dopo il "Via"
+        const out = [];                               // tutto ciò che va detto in questo tick, in un'unica frase
+        const doneReps = Math.min(c.total, Math.max(0, Math.floor(x / c.cyc)));
+        if (doneReps > S.reps) {
+          S.reps = doneReps;
+          const shown = d.perSide && S.reps > it.target ? S.reps - it.target : S.reps;
+          beep(1046, .06);
+          out.push(NUM[shown] || String(shown));
+          if (d.perSide && S.reps === it.target) out.push("Cambia lato");
+        }
+        const r = Math.floor(x / c.cyc);              // ripetizione in corso (0-based)
+        if (x >= 0 && r < c.total) {
+          (d.calls || []).forEach(([ct, txt]) => {
+            const key = r + ":" + ct;
+            if (!c.fired.has(key) && x - r * c.cyc >= ct) { c.fired.add(key); out.push(txt); }
+          });
+        }
+        if (out.length) Voice.say(out.join(". "), true);
+        if (x >= c.total * c.cyc + 0.8) { beep(1320, .3); endWork(); }
+      }
+      if (d.kind === "rom") {
+        if (!S.sideSaid && S.t >= 10) { S.sideSaid = true; Voice.say("Girati: altro lato", true); beep(990); }
+        if (S.t >= 20) { beep(1320, .3); endWork(); }
+      }
+      // verticale max: stop automatico quando scendi
+      if (d.max && S.tracker instanceof HsTracker && S.tracker.everInv && performance.now() - S.tracker.lastInv > 1500) { beep(1320, .3); endWork(); }
+    }
+    if (S.tracker && !S.saidNoPose && performance.now() - S.lastPoseAt > 4000 && Pose.landmarker) {
+      S.saidNoPose = true; cue({ k: "nopose", t: "Non ti vedo: sistema il telefono" });
+    }
+  }
+  render();
+}
+function onPose(P, now) {
+  if (!S || S.phase !== "work" || !S.tracker || S.paused) return;
+  if (!P) return;
+  S.lastPoseAt = now;
+  const r = S.tracker.update(P, now);
+  if (!r) return;
+  if (r.metric) $("#sMetric").textContent = r.metric;
+  if (r.cue) cue(r.cue);
+  if (r.rep) addRep(1, true);
+}
+function addRep(n, auto) {
+  const it = cur();
+  if (!S || S.phase !== "work" || it.def.kind !== "reps") return;
+  S.reps = Math.max(0, S.reps + n);
+  if (n > 0) { beep(1046, .08); Voice.say(String(S.reps), true); }
+  if (auto && !it.def.max && S.reps >= it.target && !S.ending) {
+    S.ending = true;
+    setTimeout(() => { if (S && S.phase === "work" && cur() === it) { Voice.say("Serie completata"); endWork(); } }, 1500);
+  }
+  render();
+}
+function finish() {
+  S.phase = "done"; clearInterval(timer);
+  Pose.stop(); Anim.stop($("#sAnim")); try { wakeLock && wakeLock.release(); } catch (e) {}
+  S.log.durationMin = Math.round(S.elapsed / 60);
+  const log = store.get("log", []); log.unshift(S.log); store.set("log", log.slice(0, 200));
+  Voice.say("Sessione completata. Ottimo lavoro.", true);
+  $("#panel").classList.add("hidden"); $("#cam").classList.add("hidden");
+  const sm = $("#sSummary"); sm.classList.remove("hidden");
+  sm.innerHTML = `<h2>Sessione completata · ${fmt(S.elapsed)}</h2>` + logTable(S.log) +
+    `<p class="mut small">Salvata nel registro. Copiala da "Registro" e incollala a Claude per la revisione settimanale.</p>`;
+  $("#ctrl").innerHTML = ""; const b = btn("Torna alla home", "pri", exitSession); $("#ctrl").append(b);
+  $("#sBlock").textContent = S.plan.title; $("#sProg").style.width = "100%";
+}
+function exitSession() {
+  if (S && S.phase !== "done" && S.log.sets.length) {
+    S.log.durationMin = Math.round(S.elapsed / 60); S.log.incomplete = true;
+    const log = store.get("log", []); log.unshift(S.log); store.set("log", log.slice(0, 200));
+  }
+  clearInterval(timer); Pose.stop(); Voice.stop(); Anim.stop($("#sAnim")); try { wakeLock && wakeLock.release(); } catch (e) {}
+  S = null;
+  $("#session").classList.add("hidden"); $("#main").classList.remove("hidden");
+  renderHome(); renderLog();
+}
+
+/* ================= RENDER SESSIONE ================= */
+function btn(label, cls, fn) { const b = document.createElement("button"); b.textContent = label; if (cls) b.className = cls; b.onclick = fn; return b; }
+let lastCtrlKey = "";
+function render() {
+  if (!S || S.phase === "done") return;
+  const it = cur(); if (!it) return;
+  const d = it.def;
+  $("#sBlock").textContent = it.block;
+  $("#sClock").textContent = fmt(S.elapsed);
+  $("#sProg").style.width = (100 * S.i / S.items.length) + "%";
+  const ph = $("#sPhase");
+  ph.className = "phase " + S.phase;
+  ph.textContent = { setup: "PREPARATI", work: "VAI", rest: "RECUPERO" }[S.phase] + (S.paused ? " · IN PAUSA" : "");
+  const showIt = S.phase === "rest" ? nextIt() : it;
+  $("#sEx").textContent = showIt.def.name;
+  $("#sSet").textContent = (showIt.sets > 1 ? `Serie ${showIt.set}/${showIt.sets} · ` : "") + describeTarget(showIt);
+  let big = "";
+  if (S.phase === "work") big = d.kind === "reps" ? String(S.cad && d.perSide && S.reps > it.target ? S.reps - it.target : S.reps) : fmt(S.t);
+  else big = fmt(Math.ceil(S.t));
+  $("#sBig").textContent = big;
+  const an = $("#sAnim"), camOn = !$("#stage").classList.contains("nocam");
+  if (camOn && S.phase === "work") Anim.stop(an); else Anim.play(an, showIt.ex);
+  an.classList.toggle("small", S.phase === "work" || camOn);
+  const desc = $("#sDesc");
+  const descKey = S.phase + S.i;
+  if (desc.dataset.k !== descKey) {
+    desc.dataset.k = descKey;
+    const src = S.phase === "rest" ? null : d;
+    desc.innerHTML = src && S.phase === "setup" ? [src.setup, ...src.cues].filter(Boolean).map(t => `<li>${t}</li>`).join("") : "";
+    const nx = S.phase === "rest" ? null : (it.set === it.sets ? S.items[S.i + 1] : null);
+    $("#sNext").textContent = nx ? `Poi: ${nx.def.name}` : "";
+  }
+  // controlli
+  const key = S.phase + "|" + d.kind + "|" + S.paused + "|" + !!S.cad + "|" + S.log.sets.length;
+  if (key !== lastCtrlKey) {
+    lastCtrlKey = key;
+    const c = $("#ctrl"); c.innerHTML = "";
+    if (S.phase === "setup") { c.append(btn("Salta esercizio", "", skipExercise), btn("Via", "pri", () => beginWork())); }
+    else if (S.phase === "rest") {
+      const last = S.log.sets[S.log.sets.length - 1];
+      if (last && last.auto) c.append(btn("Ne ho fatte −1", "", () => { if (last.actual > 0) last.actual--; $("#sMetric").textContent = `Serie registrata: ${last.actual}`; }));
+      c.append(btn("+15 s", "", () => { S.t += 15; render(); }), btn("Salta recupero", "pri", () => { S.t = 0.01; }));
+    }
+    else if (S.cad) { c.append(btn("Mi fermo qui", "", endWork)); }
+    else if (d.kind === "reps") { c.append(btn("−1", "", () => addRep(-1)), btn("+1", "", () => addRep(1)), btn("Fatto", "pri", endWork)); }
+    else { c.append(btn("Fatto", "pri", endWork)); }
+  }
+}
+function skipExercise() {
+  const ex = cur().ex;
+  while (cur() && cur().ex === ex) S.i++;
+  enterItem();
+}
+$("#btnPause").onclick = () => { if (!S) return; S.paused = !S.paused; $("#btnPause").textContent = S.paused ? "Riprendi" : "Pausa"; if (S.paused) Voice.stop(); render(); };
+$("#btnQuit").onclick = () => {
+  if (!S) return;
+  if (S.phase === "done") return exitSession();
+  const now = Date.now();
+  if (now - S.quitArm < 3000) return exitSession();
+  S.quitArm = now; $("#btnQuit").textContent = "Conferma";
+  setTimeout(() => { $("#btnQuit").textContent = "Esci"; }, 3000);
+};
+
+/* ================= HOME / PROGRAMMA / REGISTRO ================= */
+const settings = {
+  week: store.get("week", 1), cam: store.get("cam", true), auto: store.get("auto", true), facing: store.get("facing", "user"), voice: store.get("voice", true)
+};
+function seg(id, val, onSet) {
+  const el = $(id);
+  el.querySelectorAll("button").forEach(b => {
+    b.classList.toggle("sel", b.dataset.v === String(val));
+    b.onclick = () => { onSet(b.dataset.v); seg(id, b.dataset.v, onSet); };
+  });
+}
+function renderHome() {
+  const wk = $("#weeks"); wk.innerHTML = "";
+  for (let w = 1; w <= 8; w++) {
+    const b = btn(String(w), w === settings.week ? "sel" : "", () => { settings.week = w; store.set("week", w); renderHome(); renderProgram(); });
+    wk.append(b);
+  }
+  $("#phaseLbl").textContent = "· " + phaseOf(settings.week);
+  const sc = $("#sessCards"); sc.innerHTML = "";
+  const done = store.get("log", []).filter(l => l.week === settings.week && !l.incomplete).map(l => l.session);
+  [["A", "Mobilità · verticale · trazioni esplosive · muscle-up"], ["B", "Mobilità · verticale · dip alla sbarra · forza"], ["T", "Flessione spalle, max trazioni, max dip, max verticale"]].forEach(([id, sub]) => {
+    const plan = build(id, settings.week);
+    const card = document.createElement("div"); card.className = "card sesscard";
+    card.innerHTML = `<div><div class="t">${plan.title}${done.includes(id) ? ' <span style="color:var(--acc)">✓</span>' : ""}</div><div class="mut small">${sub} · ~${estimateMin(plan)} min</div></div>`;
+    card.append(btn("Inizia", "pri", () => startSession(id)));
+    sc.append(card);
+  });
+  seg("#optCam", settings.cam ? 1 : 0, v => { settings.cam = v === "1"; store.set("cam", settings.cam); });
+  seg("#optFacing", settings.facing, v => { settings.facing = v; store.set("facing", v); });
+  seg("#optAuto", settings.auto ? 1 : 0, v => { settings.auto = v === "1"; store.set("auto", settings.auto); });
+  seg("#optVoice", settings.voice ? 1 : 0, v => { settings.voice = v === "1"; store.set("voice", settings.voice); });
+}
+function planTable(plan) {
+  return plan.blocks.map(b => `<h3>${b.title}</h3><table>` + b.items.map(it => {
+    const d = EX[it.ex];
+    const tgt = d.max ? (d.kind === "reps" ? "max" : "max s") : d.kind === "reps" ? `${it.target}${d.perSide ? "/lato" : ""}` : d.kind === "rom" ? "test" : `${it.target}s`;
+    return `<tr><td><button class="exl" data-ex="${it.ex}">${d.name}</button>${d.track ? ' <span class="mut small">(camera)</span>' : ""}</td><td class="n">${it.sets > 1 ? it.sets + "×" : ""}${tgt}${it.rest && it.sets > 1 ? " · rec " + it.rest + "s" : ""}</td></tr>`;
+  }).join("") + "</table>").join("");
+}
+function renderProgram() {
+  const w = settings.week;
+  $("#tab-program").innerHTML = `
+    <div class="card"><b>Settimana ${w} · ${phaseOf(w)}</b>
+    <div class="mut small">Cambia settimana dalla scheda Allenamento. Tocca il nome di un esercizio per vedere come si fa.</div></div>
+    <div class="card"><h2>${build("A", w).title}</h2>${planTable(build("A", w))}</div>
+    <div class="card"><h2>${build("B", w).title}</h2>${planTable(build("B", w))}</div>
+    <div class="card"><h2>Criteri di progressione</h2>
+      <h3>Verticale libera</h3><ul>
+        <li>Prerequisito: 60 s pancia al muro con spalle aperte (camera ≥ 170°) e 10 toe/heel pull con 3+ s di equilibrio.</li>
+        <li>Poi: kick-up liberi lontano dal muro, con uscita a ruota laterale.</li></ul>
+      <h3>Muscle-up alla sbarra</h3><ul>
+        <li>Fase 1: 5×5 trazioni esplosive con sbarra al petto basso + 3×8 dip alla sbarra + 30 s di false grip.</li>
+        <li>Fase 2: muscle-up con elastico 4×3 puliti e negativi controllati in 3+3 s.</li>
+        <li>Fase 3: primo muscle-up senza elastico, poi singole di qualità (5×1).</li></ul>
+      <h3>Addominali</h3><ul>
+        <li>Knee raise: 3×12 puliti senza oscillare → passa ai leg raise.</li>
+        <li>Tuck L-sit: 3×20 s → prova una gamba tesa alla volta.</li></ul>
+      <h3>Mobilità spalle</h3><ul>
+        <li>Obiettivo: flessione ≥ 170° per lato senza inarcare (test camera).</li>
+        <li>Se il test resta sotto i 160° per 4 settimane, aggiungi la mobilità 10 min a giorni alterni.</li>
+        <li>Anche: squat profondo con talloni a terra per 60 s e pike seduto con mani alle caviglie sono i riferimenti.</li></ul>
+      <h3>Regole</h3><ul>
+        <li>Se completi tutte le serie con tecnica pulita, alla sessione dopo usa la settimana successiva; altrimenti ripeti la settimana.</li>
+        <li>Dolore articolare (non fatica muscolare) = stop dell'esercizio.</li>
+        <li>Pancetta bassa: dipende dal grasso corporeo totale (deficit calorico, passi giornalieri), non dagli addominali. Il blocco addominali serve per forza e controllo del bacino, utili a muscle-up e verticale.</li>
+        <li>Stazione pieghevole: zavorra la base con i manubri, controlla perni e regolazioni a ogni sessione, niente kipping. Se la struttura si solleva o oscilla, fermati.</li></ul>
+    </div>
+    <div class="card"><h2>Posizione del telefono</h2><ul>
+      <li>Trazioni: a terra davanti alla sbarra, 2-3 m, in verticale, inquadra dalla sbarra ai piedi.</li>
+      <li>Dip, verticale, test spalle: di lato, 2-3 m, profilo completo.</li>
+      <li>Luce davanti a te, non alle spalle. Vestiti aderenti aiutano il rilevamento.</li></ul></div>`;
+}
+$("#tab-program").addEventListener("click", e => {
+  const b = e.target.closest("button.exl"); if (!b) return;
+  const d = EX[b.dataset.ex];
+  $("#mTitle").textContent = d.name;
+  $("#mDesc").innerHTML = [d.setup, ...d.cues].filter(Boolean).map(t => `<li>${t}</li>`).join("");
+  $("#modal").classList.remove("hidden"); Anim.play($("#mAnim"), b.dataset.ex);
+});
+const closeModal = () => { $("#modal").classList.add("hidden"); Anim.stop($("#mAnim")); };
+$("#mClose").onclick = closeModal;
+$("#modal").addEventListener("click", e => { if (e.target.id === "modal") closeModal(); });
+function logTable(l) {
+  const by = {};
+  l.sets.forEach(s => { (by[s.name] = by[s.name] || []).push(s); });
+  return "<table>" + Object.entries(by).map(([name, sets]) => {
+    const vals = sets.map(s => s.actual == null ? "" : s.actual).filter(v => v !== "").join(", ");
+    const ex = [];
+    sets.forEach(s => {
+      if (s.flexSx != null || s.flexDx != null) ex.push(`flessione sx ${s.flexSx ?? "–"}° dx ${s.flexDx ?? "–"}°`);
+      if (s.avgShoulder != null) ex.push(`spalle ${s.avgShoulder}°`);
+      if (s.avgDepth != null) ex.push(`gomito min ${s.avgDepth}°`);
+      if (s.incomplete) ex.push(`${s.incomplete} incomplete`);
+      if (s.shallow) ex.push(`${s.shallow} poco profonde`);
+    });
+    return `<tr><td>${name}${ex.length ? `<div class="mut small">${[...new Set(ex)].join(" · ")}</div>` : ""}</td><td class="n">${vals}</td></tr>`;
+  }).join("") + "</table>";
+}
+function renderLog() {
+  const log = store.get("log", []);
+  $("#logList").innerHTML = log.length ? log.map(l => `<div class="card"><b>${new Date(l.date).toLocaleDateString("it-IT", { weekday: "short", day: "numeric", month: "short" })} · Sessione ${l.session} · sett. ${l.week}</b>
+     <span class="mut small"> · ${l.durationMin ?? "?"} min${l.incomplete ? " · interrotta" : ""}</span>${logTable(l)}</div>`).join("")
+    : `<div class="card mut">Nessuna sessione registrata.</div>`;
+}
+$("#btnCopyLog").onclick = async () => {
+  const txt = "Registro allenamenti (JSON) — analizza progressi e proponi aggiustamenti:\n" + JSON.stringify(store.get("log", []).slice(0, 12));
+  try { await navigator.clipboard.writeText(txt); $("#copyMsg").textContent = "Copiato. Incollalo in chat con Claude."; $("#copyArea").classList.add("hidden"); }
+  catch (e) { const ta = $("#copyArea"); ta.value = txt; ta.classList.remove("hidden"); ta.select(); $("#copyMsg").textContent = "Copia manualmente dal riquadro qui sotto."; }
+};
+let clearArm = 0;
+$("#btnClearLog").onclick = () => {
+  if (Date.now() - clearArm < 3000) { store.set("log", []); renderLog(); renderHome(); $("#btnClearLog").textContent = "Cancella"; return; }
+  clearArm = Date.now(); $("#btnClearLog").textContent = "Tocca di nuovo per confermare";
+  setTimeout(() => { $("#btnClearLog").textContent = "Cancella"; }, 3000);
+};
+document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => {
+  document.querySelectorAll(".tabs button").forEach(x => x.classList.toggle("sel", x === b));
+  ["home", "program", "log"].forEach(t => $("#tab-" + t).classList.toggle("hidden", t !== b.dataset.tab));
+});
+
+// offline (solo quando servita da un hosting proprio, es. GitHub Pages; dentro l'artifact non è disponibile)
+try { if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) navigator.serviceWorker.register("sw.js").catch(() => {}); } catch (e) {}
+
+Voice.init();
+renderHome(); renderProgram(); renderLog();
+
+// hook per i test
+window.__coach = { Anim, EX, build, flatten, estimateMin, PullTracker, DipTracker, HsTracker, RomTracker, get S() { return S; }, onPose, startSession, tick };
+</script>
+</body>
+</html>
