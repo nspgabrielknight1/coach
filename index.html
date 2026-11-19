@@ -294,6 +294,9 @@ const CAD = {
   deadbug: [3.5, [[0, "Allunga"], [1.8, "Torna"]]], wipers: [4],
   sbdip: [3.5], dipdeep: [5, [[0, "Giù"], [3, "Su"]]], dipw: [4], pike: [3.5], pikeel: [4],
 };
+// esercizi pesanti: tra uno e l'altro recupero pieno (preparazione inclusa); gli altri passano subito alla preparazione
+["hscw", "taps", "falsegrip", "expull", "muneg", "muband", "sbdip", "dipdeep", "dipw", "pullslow", "pullw", "pike", "pikeel",
+ "kneeraise", "legraise", "lsit", "maxpull", "maxdip", "maxhs"].forEach(k => { EX[k].heavy = true; });
 Object.entries(CAD).forEach(([k, [c, calls]]) => { EX[k].cad = c; if (calls) EX[k].calls = calls; });
 const NUM = ["zero", "uno", "due", "tre", "quattro", "cinque", "sei", "sette", "otto", "nove", "dieci", "undici", "dodici", "tredici", "quattordici", "quindici", "sedici", "diciassette", "diciotto", "diciannove", "venti"];
 const pick = a => a[Math.floor(Math.random() * a.length)];
@@ -640,7 +643,7 @@ function estimateMin(plan) {
   plan.blocks.forEach(b => b.items.forEach(it => {
     const d = EX[it.ex];
     const work = d.max ? 45 : d.kind === "reps" ? it.target * 3.5 * (d.perSide ? 2 : 1) : it.target;
-    sec += SETUP_SEC + it.sets * work + (it.sets - 1) * (it.rest || 0) + 10;
+    sec += SETUP_SEC + it.sets * work + (it.sets - 1) * (it.rest || 0) + (d.heavy && it.rest ? Math.max(5, it.rest - SETUP_SEC) : 0) + 10;
   }));
   return Math.round(sec / 60);
 }
@@ -940,11 +943,14 @@ function endWork() {
   S.tracker = null;
   const nx = nextIt();
   if (!nx) { S.i++; return finish(); }
-  if (nx.ex === it.ex && it.rest) {
-    S.phase = "rest"; S.t = it.rest; S.tenSaid = false;
+  // tra le serie: recupero dell'esercizio. Dopo un esercizio pesante: stesso recupero, di cui gli ultimi 15 s sono la preparazione del successivo
+  const newEx = nx.ex !== it.ex;
+  if (it.rest && (!newEx || d.heavy)) {
+    S.phase = "rest"; S.t = newEx ? Math.max(5, it.rest - SETUP_SEC) : it.rest; S.tenSaid = false;
     const mins = Math.floor(S.elapsed / 600) * 10;
     const milestone = mins >= 10 && mins !== S.lastMilestone ? (S.lastMilestone = mins, ` Siamo a ${mins} minuti.`) : "";
-    Voice.say(`${pick(["Bene.", "Ottimo.", "Buona serie.", "Così."])} Recupero ${it.rest} secondi.${milestone}`, !(d.kind === "rom"));
+    const after = newEx ? ` Poi: ${nx.def.name}.` : "";
+    Voice.say(`${pick(["Bene.", "Ottimo.", "Buona serie.", "Così."])} Recupero ${it.rest} secondi.${after}${milestone}`, !(d.kind === "rom"));
     render();
   } else { S.i++; enterItem(); }
 }
@@ -959,9 +965,11 @@ function tick() {
   if (S.phase === "setup" || S.phase === "rest") {
     S.t -= dt;
     if (S.phase === "rest" && !S.tenSaid && S.t <= 10 && prevT > 10) { S.tenSaid = true; Voice.say("10 secondi"); }
-    for (const k of [3, 2, 1]) if (prevT > k && S.t <= k) beep(660);
+    const toNewEx = S.phase === "rest" && nextIt() && nextIt().set === 1;
+    if (!toNewEx) for (const k of [3, 2, 1]) if (prevT > k && S.t <= k) beep(660);
     if (S.t <= 0) {
       if (S.phase === "setup") beginWork();
+      else if (toNewEx) { S.i++; enterItem(); }   // nuovo esercizio: 15 s di preparazione con spiegazione
       else { S.i++; beginWork(); }
     }
   } else if (S.phase === "work") {

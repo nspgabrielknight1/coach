@@ -1,6 +1,6 @@
 // Service worker: app utilizzabile offline dopo la prima apertura.
 // App: cache con aggiornamento in background. Modello di posa (CDN): cache-first, scaricato una volta.
-const CACHE = "coach-v2";
+const CACHE = "coach-v4";
 const CORE = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg", "./icon-192.png", "./icon-512.png"];
 const MODEL_HOSTS = ["cdn.jsdelivr.net", "storage.googleapis.com"];
 
